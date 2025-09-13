@@ -2,7 +2,7 @@
 
 <div align="center">
     <img src="example.png" alt="使用示例" />
-  </div>
+</div>
 
 纯前端的 [New API](https://github.com/QuantumNous/new-api) 调用测试页面，用来测试 OpenAI/Claude/Gemini 的一些特殊调用方式。所有数据仅在浏览器本地处理与保存。
 
