@@ -33,7 +33,7 @@
 ## 如何使用
 
 1. **直接打开页面：**
-   - 用浏览器打开 https://cooksleep.github.io/newapi-special-test。
+   - 用浏览器打开 https://cooksleep.github.io/newapi-special-test
 2. **填写 API 信息：**
    - 在“API 配置”中填写 `API URL`、`API Key`、`模型`，或点击“管理配置”从右侧列表选择并应用。
 3. **选择测试类型：**
