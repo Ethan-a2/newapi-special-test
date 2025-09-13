@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New API 特殊调用测试</title>
+  <link rel="stylesheet" href="assets/css/newapi-special-test.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>New API 特殊调用测试</h1>
+      <p>测试 OpenAI/Claude/Gemini 的一些特殊调用方式</p>
+      <p class="subnote">纯前端网页，所有信息仅存储在您的浏览器本地</p>
+    </header>
+
+    <main class="main-card">
+      <section class="config-section">
+        <div class="config-header">
+          <h2>API 配置</h2>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="manageConfigBtn">管理配置</button>
+          </div>
+        </div>
+
+        <div class="grid-3 input-row">
+          <div class="input-group">
+            <label for="apiUrl">API URL</label>
+            <input type="text" id="apiUrl" />
+          </div>
+          <div class="input-group">
+            <label for="apiKey">API Key</label>
+            <input type="password" id="apiKey" />
+          </div>
+          <div class="input-group">
+            <label for="model">模型</label>
+            <input type="text" id="model" />
+          </div>
+        </div>
+      </section>
+
+      <section class="test-section">
+        <h2>测试内容</h2>
+        <p class="muted">在下方选择测试类型，编辑用户消息，然后发送请求。结果将按轮次与请求分块展示。</p>
+
+        <div class="segmented" id="testType">
+          <button class="seg-btn active" data-scenario="openai_tools">OpenAI API 工具调用</button>
+          <button class="seg-btn" data-scenario="anthropic_tools">Claude API 工具调用</button>
+          <button class="seg-btn" data-scenario="gemini_tools">Gemini API 工具调用</button>
+          <button class="seg-btn" data-scenario="gemini_search">Gemini API 搜索</button>
+          <button class="seg-btn" data-scenario="gemini_url_context">Gemini API URL 上下文</button>
+        </div>
+
+        <div class="input-group">
+          <label for="userInput">用户消息</label>
+          <textarea id="userInput" class="input-textarea" rows="3" placeholder="请输入本次测试的用户消息"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="testBtn">发送测试请求</button>
+          <button class="btn" id="clearBtn">清空结果</button>
+        </div>
+
+        <div class="split-columns">
+          <div class="column">
+            <h3>轮次与消息</h3>
+            <div id="messageTimeline" class="timeline"></div>
+          </div>
+          <div class="column">
+            <h3>请求与响应</h3>
+            <div id="blocksContainer" class="blocks-container"></div>
+          </div>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 配置管理模态框 -->
+  <div id="configModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="configModalTitle">管理 API 配置</h2>
+        <span class="close" id="closeConfigModal">&times;</span>
+      </div>
+
+      <div class="config-modal-body">
+        <div class="modal-left">
+          <h3 id="modalFormHeading" class="subheading">添加新配置</h3>
+
+          <div class="input-group">
+            <label for="configName">配置名称</label>
+            <input type="text" id="configName" placeholder="例如：生产环境" />
+          </div>
+
+          <div class="input-group">
+            <label for="configUrl">API URL</label>
+            <input type="text" id="configUrl" />
+          </div>
+
+          <div class="input-group">
+            <label for="configKey">API Key</label>
+            <input type="password" id="configKey" />
+          </div>
+
+          <div class="input-group">
+            <label for="configModel">默认模型</label>
+            <input type="text" id="configModel" />
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn btn-primary" id="saveAsDefaultBtn">保存为默认配置</button>
+            <button class="btn btn-secondary" id="saveConfigBtn">保存配置</button>
+            <button class="btn btn-secondary" id="cancelEditBtn" style="display:none;">取消编辑</button>
+          </div>
+          <div id="saveSuccess" class="success-message">配置已保存</div>
+        </div>
+
+        <div class="modal-right">
+          <h3 class="subheading">已有配置</h3>
+          <div class="config-list" id="configList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/newapi-special-test.js"></script>
+</body>
+</html>
