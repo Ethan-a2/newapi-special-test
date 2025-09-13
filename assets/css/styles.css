@@ -63,9 +63,9 @@ body {
 .input-group input:focus, .input-group select:focus { border-color: #1e90ff; }
 
 /* Password input wrapper */
-.password-input-wrapper { position: relative; }
-.password-input-wrapper input { padding-right: 44px; }
-.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.password-input-wrapper { position: relative; display: flex; align-items: center; }
+.password-input-wrapper input { padding-right: 40px; flex: 1; }
+.password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; z-index: 10; }
 .password-toggle:hover { color: #1e90ff; background: #f8fbff; }
 .password-toggle:focus { outline: 2px solid #1e90ff; outline-offset: 1px; }
 
