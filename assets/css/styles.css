@@ -62,6 +62,13 @@ body {
 }
 .input-group input:focus, .input-group select:focus { border-color: #1e90ff; }
 
+/* Password input wrapper */
+.password-input-wrapper { position: relative; }
+.password-input-wrapper input { padding-right: 44px; }
+.password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.password-toggle:hover { color: #1e90ff; background: #f8fbff; }
+.password-toggle:focus { outline: 2px solid #1e90ff; outline-offset: 1px; }
+
 .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0 24px; }
 .btn-group { display: flex; gap: 10px; }
 .btn { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; background: #f1f5f9; color: #0f172a; font-weight: 600; }

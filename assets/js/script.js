@@ -511,7 +511,34 @@
   clearBtn.addEventListener('click', clearResults);
 
   // Defaults
+  // Password toggle functionality
+  function initPasswordToggles(){
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.getAttribute('data-target');
+        const input = document.getElementById(targetId);
+        const eyeIcon = btn.querySelector('.eye-icon');
+        const eyeOffIcon = btn.querySelector('.eye-off-icon');
+        
+        if(input.type === 'password'){
+          input.type = 'text';
+          eyeIcon.style.display = 'none';
+          eyeOffIcon.style.display = 'block';
+          btn.setAttribute('aria-label', '隐藏密码');
+        } else {
+          input.type = 'password';
+          eyeIcon.style.display = 'block';
+          eyeOffIcon.style.display = 'none';
+          btn.setAttribute('aria-label', '显示密码');
+        }
+      });
+    });
+  }
+
   window.addEventListener('load', () => {
+    // 初始化密码切换功能
+    initPasswordToggles();
+    
     // 自动应用默认配置
     const cfgs = loadConfigs();
     const d = cfgs.find(c => c && c.isDefault);
