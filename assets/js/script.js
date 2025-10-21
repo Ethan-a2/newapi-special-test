@@ -1,61 +1,7 @@
 (function(){
-  // ===== 调试日志系统 =====
-  const DEBUG = {
-    enabled: true,  // 设置为 false 可关闭所有调试日志
-    prefix: '🔍',
-    
-    log: function(...args) {
-      if (this.enabled) console.log(this.prefix, ...args);
-    },
-    
-    info: function(...args) {
-      if (this.enabled) console.info('ℹ️', ...args);
-    },
-    
-    warn: function(...args) {
-      if (this.enabled) console.warn('⚠️', ...args);
-    },
-    
-    error: function(...args) {
-      if (this.enabled) console.error('❌', ...args);
-    },
-    
-    success: function(...args) {
-      if (this.enabled) console.log('✅', ...args);
-    },
-    
-    group: function(title) {
-      if (this.enabled) console.group(this.prefix + ' ' + title);
-    },
-    
-    groupEnd: function() {
-      if (this.enabled) console.groupEnd();
-    },
-    
-    table: function(data) {
-      if (this.enabled) console.table(data);
-    },
-    
-    time: function(label) {
-      if (this.enabled) console.time('⏱️ ' + label);
-    },
-    
-    timeEnd: function(label) {
-      if (this.enabled) console.timeEnd('⏱️ ' + label);
-    },
-    
-    // 安全显示 API Key（只显示前后几位）
-    maskApiKey: function(key) {
-      if (!key || key.length < 10) return '***';
-      return key.substring(0, 7) + '...' + key.substring(key.length - 4);
-    }
-  };
-  
-  DEBUG.info('脚本开始加载');
-  
   // Utilities
   const $ = (sel) => document.querySelector(sel);
-  const $ = (sel) => Array.from(document.querySelectorAll(sel));
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
   // Elements
   const apiUrlEl = $('#apiUrl');
@@ -91,56 +37,20 @@
 
   // LocalStorage helpers
   function loadConfigs(){
-    DEBUG.log('加载配置从 LocalStorage');
-    try { 
-      const configs = JSON.parse(localStorage.getItem('apiConfigs')||'[]');
-      DEBUG.success('配置加载成功，共', configs.length, '个配置');
-      DEBUG.table(configs.map(c => ({
-        名称: c.name,
-        URL: c.url,
-        模型: c.model,
-        默认: c.isDefault ? '是' : '否'
-      })));
-      return configs;
-    } catch (e) { 
-      DEBUG.error('配置加载失败:', e);
-      return []; 
-    }
+    try { return JSON.parse(localStorage.getItem('apiConfigs')||'[]'); } catch { return []; }
   }
-  function saveConfigs(cfgs){ 
-    DEBUG.log('保存配置到 LocalStorage，共', cfgs.length, '个配置');
-    try {
-      localStorage.setItem('apiConfigs', JSON.stringify(cfgs));
-      DEBUG.success('配置保存成功');
-    } catch (e) {
-      DEBUG.error('配置保存失败:', e);
-    }
-  }
+  function saveConfigs(cfgs){ localStorage.setItem('apiConfigs', JSON.stringify(cfgs)); }
 
   // URL helpers
-  function stripTrailingSlash(u){ 
-    const result = (u || '').replace(/\/+$/, '');
-    if (result !== u) {
-      DEBUG.log('移除尾部斜杠:', u, '→', result);
-    }
-    return result;
-  }
-  function buildEndpoint(base){ 
-    const endpoint = stripTrailingSlash(base) + '/v1/chat/completions';
-    DEBUG.log('构建 OpenAI 端点:', endpoint);
-    return endpoint;
-  }
+  function stripTrailingSlash(u){ return (u || '').replace(/\/+$/, ''); }
+  function buildEndpoint(base){ return stripTrailingSlash(base) + '/v1/chat/completions'; }
   function buildGeminiEndpoint(base, model, apiKey){
     const root = stripTrailingSlash(base);
-    const endpoint = `${root}/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-    DEBUG.log('构建 Gemini 端点:', endpoint.replace(apiKey, DEBUG.maskApiKey(apiKey)));
-    return endpoint;
+    return `${root}/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   }
   function buildAnthropicEndpoint(base){
     const root = stripTrailingSlash(base);
-    const endpoint = `${root}/v1/messages`;
-    DEBUG.log('构建 Anthropic 端点:', endpoint);
-    return endpoint;
+    return `${root}/v1/messages`;
   }
 
   // System defaults (single source of truth) with optional env override from window.APP_CONFIG
@@ -152,14 +62,11 @@
   };
 
   function displayConfigs(){
-    DEBUG.log('显示配置列表');
     const cfgs = loadConfigs();
     if(cfgs.length === 0){
-      DEBUG.info('配置列表为空');
       configListEl.innerHTML = '<p style="color:#64748b;text-align:center;">暂无保存的配置</p>';
       return;
     }
-    DEBUG.log('渲染', cfgs.length, '个配置项');
     configListEl.innerHTML = cfgs.map((c, i) => `
       <div class="config-item" data-index="${i}">
         <div class="config-info">
@@ -464,7 +371,6 @@
       const cfgs = loadConfigs();
       const wasDefault = !!(cfgs[idx] && cfgs[idx].isDefault);
       if(wasDefault){
-        DEBUG.log('取消默认配置:', cfgs[idx].name);
         // 取消默认，恢复系统预设
         cfgs.forEach((c) => { if(c) c.isDefault = false; });
         saveConfigs(cfgs);
@@ -472,7 +378,6 @@
         applySystemDefaultToTop();
         appAlert('已取消默认，已恢复系统预设。');
       } else {
-        DEBUG.log('设置默认配置:', cfgs[idx].name);
         // 设为默认，并应用到顶部
         cfgs.forEach((c, i) => { if(c) c.isDefault = (i === idx); });
         saveConfigs(cfgs);
@@ -487,16 +392,14 @@
       const idx = parseInt(delBtn.getAttribute('data-del'),10);
       // 二次确认逻辑：首次点击进入确认态，显示问号；再次点击才删除
       if(!delBtn.classList.contains('confirm')){
-        DEBUG.log('删除配置（等待二次确认）');
         delBtn.classList.add('confirm');
         // 定时自动恢复
         if(delBtn._confirmTimer) clearTimeout(delBtn._confirmTimer);
         delBtn._confirmTimer = setTimeout(() => { try{ delBtn.classList.remove('confirm'); }catch{} delBtn._confirmTimer=null; }, 2500);
         return;
       }
-      const cfgs = loadConfigs();
-      DEBUG.log('确认删除配置:', cfgs[idx].name);
       if(delBtn._confirmTimer){ clearTimeout(delBtn._confirmTimer); delBtn._confirmTimer=null; }
+      const cfgs = loadConfigs();
       cfgs.splice(idx,1);
       saveConfigs(cfgs);
       displayConfigs();
@@ -507,7 +410,6 @@
       const idx = parseInt(editBtn.getAttribute('data-edit'),10);
       const cfg = loadConfigs()[idx];
       if(cfg){
-        DEBUG.log('编辑配置:', cfg.name);
         editingIndex = idx;
         configNameEl.value = cfg.name || '';
         configUrlEl.value = cfg.url || '';
@@ -528,7 +430,6 @@
     const index = parseInt(item.getAttribute('data-index'), 10);
     const cfg = loadConfigs()[index];
     if(cfg){
-      DEBUG.log('应用配置:', cfg.name);
       apiUrlEl.value = cfg.url || '';
       apiKeyEl.value = cfg.key || '';
       modelEl.value = cfg.model || SYSTEM_DEFAULTS.model;
@@ -538,31 +439,16 @@
 
   // 普通保存：编辑时保留原 isDefault；新建为 false
   saveConfigBtn.addEventListener('click', async () => {
-    DEBUG.log('保存配置按钮点击');
     const name = configNameEl.value.trim();
     const url = stripTrailingSlash(configUrlEl.value.trim());
     const key = configKeyEl.value.trim();
     const model = (configModelEl.value || SYSTEM_DEFAULTS.model).trim();
-    
-    DEBUG.group('配置信息');
-    DEBUG.log('名称:', name);
-    DEBUG.log('URL:', url);
-    DEBUG.log('Key:', DEBUG.maskApiKey(key));
-    DEBUG.log('Model:', model);
-    DEBUG.groupEnd();
-    
-    if(!name || !url || !key){ 
-      DEBUG.warn('配置信息不完整');
-      await appAlert('请填写所有必填字段。'); 
-      return; 
-    }
+    if(!name || !url || !key){ await appAlert('请填写所有必填字段。'); return; }
     const cfgs = loadConfigs();
     if(editingIndex !== null){
-      DEBUG.log('更新现有配置，索引:', editingIndex);
       const prev = cfgs[editingIndex] || {};
       cfgs[editingIndex] = { ...prev, name, url, key, model };
     } else {
-      DEBUG.log('添加新配置');
       cfgs.push({ name, url, key, model, isDefault: false });
     }
     saveConfigs(cfgs);
@@ -571,7 +457,6 @@
     saveSuccessEl.style.display = 'block';
     setTimeout(() => saveSuccessEl.style.display = 'none', 1500);
     displayConfigs();
-    DEBUG.success('配置保存成功');
   });
 
   // 保存为默认配置：将该项设为唯一默认，并立即应用到顶部
@@ -651,53 +536,28 @@
   }
 
   window.addEventListener('load', () => {
-    DEBUG.info('页面加载完成，开始初始化');
-    DEBUG.time('页面初始化');
-    
     // 初始化密码切换功能
-    DEBUG.log('初始化密码切换功能');
     initPasswordToggles();
     
     // 自动应用默认配置
-    DEBUG.log('应用默认配置');
     const cfgs = loadConfigs();
     const d = cfgs.find(c => c && c.isDefault);
     if(d){
-      DEBUG.success('找到默认配置:', d.name);
-      DEBUG.group('应用默认配置');
-      DEBUG.log('API URL:', d.url);
-      DEBUG.log('API Key:', DEBUG.maskApiKey(d.key));
-      DEBUG.log('Model:', d.model);
-      DEBUG.groupEnd();
-      
       apiUrlEl.value = d.url || apiUrlEl.value || SYSTEM_DEFAULTS.apiUrl;
       apiKeyEl.value = d.key || SYSTEM_DEFAULTS.apiKey;
       modelEl.value = d.model || modelEl.value || SYSTEM_DEFAULTS.model;
     } else {
-      DEBUG.info('未找到默认配置，使用系统默认值');
-      DEBUG.group('系统默认配置');
-      DEBUG.log('API URL:', SYSTEM_DEFAULTS.apiUrl);
-      DEBUG.log('Model:', SYSTEM_DEFAULTS.model);
-      DEBUG.groupEnd();
-      
       if(!apiUrlEl.value){ apiUrlEl.value = SYSTEM_DEFAULTS.apiUrl; }
       if(!modelEl.value){ modelEl.value = SYSTEM_DEFAULTS.model; }
     }
     // 占位留空：不再动态写入 placeholder
     // 默认测试文案
-    if(userInputEl){ 
-      userInputEl.value = '当前时间是？';
-      DEBUG.log('设置默认用户消息:', userInputEl.value);
-    }
-    
-    DEBUG.timeEnd('页面初始化');
-    DEBUG.success('页面初始化完成');
+    if(userInputEl){ userInputEl.value = '当前时间是？'; }
   });
 
   // Segmented control: choose scenario
   function setActiveScenario(scenario){
-    DEBUG.log('切换测试场景:', scenario);
-    $('.seg-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.scenario === scenario));
+    $$('.seg-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.scenario === scenario));
     switch(scenario){
       case 'openai_tools':
         userInputEl.value = '当前时间是？';
@@ -715,7 +575,6 @@
         userInputEl.value = '这个工具有哪些特点？https://ai.google.dev/gemini-api/docs/url-context';
         break;
     }
-    DEBUG.log('默认用户消息已设置:', userInputEl.value);
   }
   if(testTypeWrap){
     testTypeWrap.addEventListener('click', (e) => {
@@ -723,44 +582,22 @@
       if(!btn) return;
       setActiveScenario(btn.dataset.scenario);
       // 切换测试内容后自动清空历史记录
-      DEBUG.log('清空历史记录');
       clearResults();
     });
   }
 
   // Test function call flow (multiple scenarios)
   testBtn.addEventListener('click', async () => {
-    DEBUG.group('========== 开始测试 ==========');
-    DEBUG.time('测试总耗时');
-    
     const apiUrl = apiUrlEl.value.trim();
     const apiKey = apiKeyEl.value.trim();
     const model = (modelEl.value || SYSTEM_DEFAULTS.model).trim();
-    
-    DEBUG.group('测试配置');
-    DEBUG.log('API URL:', apiUrl);
-    DEBUG.log('API Key:', DEBUG.maskApiKey(apiKey));
-    DEBUG.log('Model:', model);
-    DEBUG.groupEnd();
-    
-    if(!apiUrl || !apiKey){ 
-      DEBUG.warn('配置不完整，缺少 API URL 或 API Key');
-      await appAlert('请填写 API URL 和 API Key。'); 
-      DEBUG.groupEnd();
-      return; 
-    }
-    
+    if(!apiUrl || !apiKey){ await appAlert('请填写 API URL 和 API Key。'); return; }
     errorMessage.textContent = '';
     testBtn.disabled = true; testBtn.textContent = '请求中...';
-    DEBUG.log('禁用测试按钮');
-    
     // 发起新请求前自动清空历史记录
-    DEBUG.log('清空历史记录');
     clearResults();
 
     const scenario = document.querySelector('.seg-btn.active')?.dataset.scenario || 'openai_tools';
-    DEBUG.info('测试场景:', scenario);
-    
     const endpoint = buildEndpoint(apiUrl);
     const geminiEndpoint = buildGeminiEndpoint(apiUrl, model, apiKey);
     const anthropicEndpoint = buildAnthropicEndpoint(apiUrl);
@@ -768,11 +605,7 @@
     try{
       requestPending = true; showWaiting();
       const userText = userInputEl.value.trim() || '当前时间是？';
-      DEBUG.log('用户消息:', userText);
       if(scenario === 'openai_tools'){
-        DEBUG.group('OpenAI 工具调用测试');
-        DEBUG.log('步骤 1: 发送带工具定义的请求');
-        
         // OpenAI: function call time query
         const requestBody1 = {
           model,
@@ -796,41 +629,26 @@
         addBlock('请求 #1', requestBody1);
         addMessage('user', '消息 #1', requestBody1.messages[0]);
 
-        DEBUG.log('发送第一次请求...');
         const r1 = await fetchAndParse(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify(requestBody1) });
         const data1 = ensureJsonOrThrow(r1);
         addBlock('响应 #1', data1);
 
         const choice = data1.choices && data1.choices[0];
-        if(!choice){ 
-          DEBUG.error('响应中没有 choices');
-          throw new Error('响应无 choices'); 
-        }
+        if(!choice){ throw new Error('响应无 choices'); }
         const assistantMsg = choice.message;
-        DEBUG.log('助手消息:', assistantMsg);
         addMessage('assistant', '消息 #2', assistantMsg);
 
         const toolCall = assistantMsg && assistantMsg.tool_calls && assistantMsg.tool_calls[0];
         if(!toolCall){
-          DEBUG.warn('未检测到工具调用');
-          DEBUG.log('助手消息内容:', assistantMsg.content);
           addInlineInfo('未触发工具调用：模型可能未理解指令，或 API 异常。');
-          DEBUG.groupEnd();
           return;
         }
-        
-        DEBUG.success('检测到工具调用:', toolCall.function.name);
-        DEBUG.log('工具调用 ID:', toolCall.id);
-        DEBUG.log('工具参数:', toolCall.function.arguments);
 
         // Simulate tool execution
-        DEBUG.log('步骤 2: 模拟工具执行');
         const currentTime = new Date().toLocaleString('zh-CN', {
           year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long',
           hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
         });
-        DEBUG.log('当前时间:', currentTime);
-        
         const toolMessage = {
           role: 'tool',
           content: JSON.stringify({ current_time: currentTime }),
@@ -838,19 +656,13 @@
         };
         addMessage('tool', '消息 #3 (工具返回结果)', { current_time: currentTime });
 
-        DEBUG.log('步骤 3: 发送工具结果，获取最终回答');
         const requestBody2 = { model, messages: [ requestBody1.messages[0], assistantMsg, toolMessage ] };
         addBlock('请求 #2', requestBody2);
         const r2 = await fetchAndParse(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify(requestBody2) });
         const data2 = ensureJsonOrThrow(r2);
         addBlock('响应 #2', data2);
         const finalChoice = data2.choices && data2.choices[0];
-        if(finalChoice && finalChoice.message){ 
-          DEBUG.success('获得最终回答');
-          DEBUG.log('最终回答内容:', finalChoice.message.content);
-          addMessage('assistant', '消息 #4 (最终回答)', finalChoice.message); 
-        }
-        DEBUG.groupEnd();
+        if(finalChoice && finalChoice.message){ addMessage('assistant', '消息 #4 (最终回答)', finalChoice.message); }
       }
       else if(scenario === 'anthropic_tools'){
         // Anthropic Messages: function/tool use (two-step)
@@ -996,17 +808,6 @@
       }
 
     }catch(err){
-      DEBUG.error('测试过程中发生错误:', err);
-      DEBUG.group('错误详情');
-      DEBUG.log('错误消息:', err.message);
-      DEBUG.log('错误状态码:', err.status);
-      DEBUG.log('Content-Type:', err.contentType);
-      if (err.rawText) {
-        DEBUG.log('响应文本长度:', err.rawText.length);
-        DEBUG.log('响应文本预览:', err.rawText.substring(0, 200));
-      }
-      DEBUG.groupEnd();
-      
       console.error(err);
       // 清空顶部简要错误，改为在时间线内展示红色错误块
       errorMessage.textContent = '';
@@ -1015,86 +816,20 @@
       requestPending = false;
       hideWaiting();
       testBtn.disabled = false; testBtn.textContent = '发送测试请求';
-      DEBUG.log('恢复测试按钮');
-      DEBUG.timeEnd('测试总耗时');
-      DEBUG.groupEnd();
-      DEBUG.log('========== 测试结束 ==========\n');
     }
   });
 
   // ---- network helpers ----
   async function fetchAndParse(url, options){
-    DEBUG.group('网络请求');
-    DEBUG.time('请求耗时');
-    
-    // 安全显示 URL（隐藏 API Key）
-    const safeUrl = url.includes('key=') ? url.replace(/key=([^&]+)/, 'key=' + DEBUG.maskApiKey('$1')) : url;
-    DEBUG.log('请求 URL:', safeUrl);
-    DEBUG.log('请求方法:', options.method || 'GET');
-    
-    if (options.headers) {
-      DEBUG.group('请求头');
-      Object.entries(options.headers).forEach(([key, value]) => {
-        if (key.toLowerCase().includes('auth') || key.toLowerCase().includes('key')) {
-          DEBUG.log(key + ':', DEBUG.maskApiKey(value));
-        } else {
-          DEBUG.log(key + ':', value);
-        }
-      });
-      DEBUG.groupEnd();
-    }
-    
-    if (options.body) {
-      try {
-        const bodyObj = JSON.parse(options.body);
-        DEBUG.log('请求体大小:', options.body.length, '字节');
-        DEBUG.log('请求体预览:', JSON.stringify(bodyObj, null, 2).substring(0, 500));
-      } catch {
-        DEBUG.log('请求体:', options.body.substring(0, 200));
-      }
-    }
-    
     const res = await fetch(url, options);
-    
-    DEBUG.log('响应状态:', res.status, res.statusText);
-    DEBUG.log('响应 OK:', res.ok);
-    
     const contentType = res.headers.get('content-type') || '';
-    DEBUG.log('Content-Type:', contentType);
-    
     const text = await res.text();
-    DEBUG.log('响应大小:', text.length, '字节');
-    
-    let json; 
-    try { 
-      json = JSON.parse(text);
-      DEBUG.success('JSON 解析成功');
-      DEBUG.log('JSON 预览:', JSON.stringify(json, null, 2).substring(0, 500));
-    } catch(e) {
-      DEBUG.warn('JSON 解析失败:', e.message);
-      DEBUG.log('响应文本预览:', text.substring(0, 200));
-    }
-    
-    DEBUG.timeEnd('请求耗时');
-    DEBUG.groupEnd();
-    
-    if(!res.ok){ 
-      const e = new Error(`HTTP ${res.status}`); 
-      e.status = res.status; 
-      e.rawText = text; 
-      e.contentType = contentType;
-      DEBUG.error('请求失败:', e);
-      throw e; 
-    }
+    let json; try { json = JSON.parse(text); } catch{}
+    if(!res.ok){ const e = new Error(`HTTP ${res.status}`); e.status = res.status; e.rawText = text; e.contentType = contentType; throw e; }
     return { json, text, contentType };
   }
-  
   function ensureJsonOrThrow(parsed){
-    if(parsed && parsed.json) {
-      DEBUG.success('响应包含有效 JSON');
-      return parsed.json;
-    }
-    DEBUG.error('响应不包含有效 JSON');
+    if(parsed && parsed.json) return parsed.json;
     const e = new Error('响应非 JSON');
     e.rawText = parsed && parsed.text;
     e.contentType = parsed && parsed.contentType;
