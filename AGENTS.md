@@ -57,6 +57,7 @@
 支持 5 种测试场景，通过分段控制器 (`.segmented`) 切换：
 
 #### 场景 1：OpenAI API 工具调用 (`openai_tools`)
+
 - **端点**：`/v1/chat/completions`
 - **流程**：
   1. 发送带 `tools` 参数的请求
@@ -66,6 +67,7 @@
   5. 获取最终回答
 
 #### 场景 2：Claude API 工具调用 (`anthropic_tools`)
+
 - **端点**：`/v1/messages`
 - **特殊头部**：`x-api-key` 和 `anthropic-version: 2023-06-01`
 - **流程**：
@@ -76,6 +78,7 @@
   5. 获取最终回答
 
 #### 场景 3：Gemini API 工具调用 (`gemini_tools`)
+
 - **端点**：`/v1beta/models/{model}:generateContent?key={apiKey}`
 - **流程**：
   1. 发送带 `functionDeclarations` 的请求
@@ -85,26 +88,31 @@
   5. 获取最终回答
 
 #### 场景 4：Gemini API 搜索 (`gemini_search`)
+
 - **工具**：`{ googleSearch: {} }`
 - **用途**：调用 Google Search 工具进行实时搜索
 
 #### 场景 5：Gemini API URL 上下文 (`gemini_url_context`)
+
 - **工具**：`{ urlContext: {} }`
 - **用途**：从 URL 中提取上下文信息
 
 ### 3. UI 交互组件
 
 #### 密码显示/隐藏 (`password-toggle`)
+
 - 切换 `input.type` 在 `password` 和 `text` 之间
 - 切换眼睛图标显示状态
 
 #### 模态框系统
+
 - **配置管理模态框** (`#configModal`)：管理 API 配置
 - **自定义提示框** (`.app-modal`)：替代原生 `alert`/`confirm`
   - `appAlert(message, title)`：单按钮提示
   - `appConfirm(message, title)`：双按钮确认
 
 #### 消息时间线 (`#messageTimeline`)
+
 - 显示每轮对话的消息
 - 不同角色用不同颜色边框标识：
   - `user`：蓝色 (`#1e90ff`)
@@ -115,6 +123,7 @@
 - 支持信息提示 (`.info-inline`)
 
 #### 请求/响应块 (`#blocksContainer`)
+
 - 显示完整的请求和响应 JSON
 - 每个代码块支持一键复制
 
@@ -138,6 +147,7 @@ window.APP_CONFIG = {
 ```
 
 **修改方式**：
+
 - 直接编辑 `assets/js/config.js` 文件
 - 部署到静态服务器时可按需修改
 - **注意**：不要在公共仓库提交真实的 API Key
@@ -188,6 +198,7 @@ php -S localhost:8000
 3. 访问 `https://<username>.github.io/newapi-special-test`
 
 **手动部署到其他平台**：
+
 - **Netlify**：拖拽整个项目文件夹到 Netlify
 - **Vercel**：导入 GitHub 仓库
 - **Nginx**：将文件复制到 web 根目录
@@ -197,38 +208,45 @@ php -S localhost:8000
 ### 代码风格
 
 - **JavaScript**：
+
   - 使用 IIFE（立即执行函数）封装全局作用域
   - 使用 `const`/`let`，避免 `var`
   - 使用箭头函数和模板字符串
   - 工具函数前置定义
-
 - **CSS**：
+
   - 使用 CSS 变量（`--sb-track`, `--sb-thumb` 等）
   - BEM 命名约定（如 `.config-item`, `.modal-content`）
   - 移动端优先的响应式设计（`@media (max-width: 900px)`）
-
 - **HTML**：
+
   - 语义化标签（`<header>`, `<main>`, `<section>`）
   - 无障碍属性（`aria-label`, `aria-hidden`）
 
 ### 关键函数说明
 
 #### `buildEndpoint(base)` / `buildGeminiEndpoint(base, model, apiKey)`
+
 构建不同 API 的完整端点 URL
 
 #### `fetchAndParse(url, options)`
+
 统一的网络请求处理，返回 `{ json, text, contentType }`
 
 #### `addMessage(role, label, payload)`
+
 在时间线中添加消息卡片
 
 #### `addBlock(title, payload)`
+
 在右侧添加请求/响应代码块
 
 #### `addInlineError(text, raw)`
+
 在时间线中添加错误提示（支持原始内容展开）
 
 #### `scrollLatestIntoView()`
+
 将最新消息滚动到页面顶部
 
 ## 测试流程
@@ -236,19 +254,20 @@ php -S localhost:8000
 ### 基本测试步骤
 
 1. **填写 API 配置**：
+
    - 输入 API URL（如 `https://api.openai.com`）
    - 输入 API Key
    - 输入模型名称（如 `gpt-4`）
-
 2. **选择测试场景**：
+
    - 点击分段控制器选择测试类型
    - 系统会自动填充对应的默认消息
-
 3. **发送请求**：
+
    - 点击"发送测试请求"按钮
    - 观察左侧时间线和右侧请求/响应
-
 4. **查看结果**：
+
    - 左侧显示消息流程
    - 右侧显示完整的 JSON 数据
    - 支持复制任意代码块
@@ -267,6 +286,7 @@ php -S localhost:8000
 **原因**：API URL 填写错误，指向了网页而不是 API 端点
 
 **解决**：
+
 - 检查 URL 是否正确（应该是 API 端点，不是网页地址）
 - OpenAI 格式：`https://api.openai.com`
 - Gemini 格式：`https://generativelanguage.googleapis.com`
@@ -274,11 +294,13 @@ php -S localhost:8000
 ### 2. 为什么没有触发工具调用？
 
 **可能原因**：
+
 - 模型不支持工具调用（如某些旧版本模型）
 - 用户消息不够明确，模型未理解需要调用工具
 - API 配置错误或权限不足
 
 **解决**：
+
 - 使用支持工具调用的模型（如 `gpt-4`, `claude-3-opus`, `gemini-pro`）
 - 修改用户消息，使其更明确地需要工具（如"当前时间是？"）
 
