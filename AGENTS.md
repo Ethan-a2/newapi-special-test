@@ -203,6 +203,47 @@ php -S localhost:8000
 - **Vercel**：导入 GitHub 仓库
 - **Nginx**：将文件复制到 web 根目录
 
+## 调试系统
+
+项目内置了完整的调试日志系统，详见 [DEBUG_LOGS.md](DEBUG_LOGS.md)。
+
+### 调试日志特性
+
+- **自动记录**：所有关键操作都会自动输出日志
+- **分类清晰**：使用不同图标区分日志类型（🔍 一般、✅ 成功、❌ 错误、⚠️ 警告）
+- **性能分析**：自动记录请求耗时和总耗时
+- **安全显示**：自动隐藏 API Key 敏感信息
+- **易于控制**：可通过 `DEBUG.enabled` 开关启用/禁用
+
+### 快速使用
+
+```javascript
+// 查看所有日志
+// 打开浏览器控制台（F12），切换到 Console 标签
+
+// 临时禁用日志
+DEBUG.enabled = false;
+
+// 重新启用
+DEBUG.enabled = true;
+```
+
+### 日志示例
+
+```
+🔍 ========== 开始测试 ==========
+⏱️ 测试总耗时: 开始计时
+ℹ️ 测试场景: openai_tools
+🔍 网络请求
+  🔍 请求 URL: https://api.openai.com/v1/chat/completions
+  🔍 响应状态: 200 OK
+  ⏱️ 请求耗时: 1234.56ms
+✅ 测试成功
+⏱️ 测试总耗时: 2567.89ms
+```
+
+详细使用说明请参考 [DEBUG_LOGS.md](DEBUG_LOGS.md) 和 [DEBUG.md](DEBUG.md)。
+
 ## 开发约定
 
 ### 代码风格
